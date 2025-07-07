@@ -1,0 +1,38 @@
+from minio import Minio
+from minio.error import S3Error
+
+#MinIO服务的URL
+minio_client = Minio(
+    "play.min.io",
+    access_key="your-access-key",
+    secret_key="your-secret-key",
+    secure=True
+)
+
+#桶名
+bucket_name = "my-bucket"
+#要下载的文件前缀
+prefix = "my-prefix-"
+#本地存储的目录
+local_dir = r"C:\Users\Administrator\Desktop\minio"
+
+#列出桶中所有匹配前缀的文件
+objects = minio_client.list_objects(bucket_name, prefix=prefix, recursive=True)
+
+#确保本地目录存在
+import os
+if not os.path.exists(local_dir):
+    os.makedirs(local_dir)
+
+#下载文件
+for obj in objects:
+    object_name = obj.object_name
+    print(f"Downloading {object_name}...")
+    try:
+        #下载文件到本地目录
+        minio_client.fget_object(bucket_name, object_name, os.path.join(local_dir, object_name))
+        print(f"Downloaded {object_name} successfully.")
+    except S3Error as exc:
+        print(f"Error downloading {object_name}. {exc}")
+
+print("All files downloaded successfully.")
